@@ -1,5 +1,7 @@
 use std::ops::*;
 
+use sfml::graphics::Color;
+
 pub fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a * (1.0 - t) + t * b
 }
@@ -25,7 +27,27 @@ impl Point {
         ((self.x - other.x).powi(2) + (self.y - other.y).powi(2) + (self.z - other.z).powi(2))
             .sqrt()
     }
-    pub fn cross(&self, other: Self) -> Self {
+
+    pub fn to_color_u8(self) -> Color {
+        // self = self * 255.0;
+        Color::rgb(
+            (self.x % 255.0) as u8,
+            (self.y % 255.0) as u8,
+            (self.z % 255.0) as u8,
+        )
+    }
+    pub fn to_color_f64(mut self) -> Color {
+        self = self * 255.0;
+        Color::rgb(
+            (self.x % 255.0) as u8,
+            (self.y % 255.0) as u8,
+            (self.z % 255.0) as u8,
+        )
+    }
+    pub fn dot(self, other: Self) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+    pub fn cross(&self, other: &Self) -> Self {
         (
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
@@ -39,7 +61,12 @@ impl Point {
 }
 
 pub fn lerp_points(a: Point, b: Point, t: Point) -> Point {
-    (lerp(a.x,b.x,t.x),lerp(a.y,b.y,t.y),lerp(a.z,b.z,t.z)).to_point()
+    (
+        lerp(a.x, b.x, t.x),
+        lerp(a.y, b.y, t.y),
+        lerp(a.z, b.z, t.z),
+    )
+        .to_point()
 }
 
 impl Neg for Point {
@@ -49,7 +76,6 @@ impl Neg for Point {
         (-self.x, -self.y, -self.z).to_point()
     }
 }
-
 impl Add for Point {
     type Output = Point;
 
