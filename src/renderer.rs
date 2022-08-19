@@ -169,7 +169,7 @@ impl Screen {
 
 
 
-                    
+                
                     Event::KeyPressed { code, .. } => match code {
                         Key::D => {
                             self.c.rot_x += 0.1;
