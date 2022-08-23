@@ -27,6 +27,9 @@ impl Point {
         ((self.x - other.x).powi(2) + (self.y - other.y).powi(2) + (self.z - other.z).powi(2))
             .sqrt()
     }
+    pub fn distance_to_origin(&self) -> f64 {
+        self.distance(Point::ZERO)
+    }
 
     pub fn to_color_u8(self) -> Color {
         // self = self * 255.0;

@@ -68,18 +68,16 @@ unsafe impl Sync for ImageWrapper {}
 
 pub struct Screen {
     window: RenderWindow,
-    world: World,
+    world: Arc<RwLock<World>>,
     c: Camera,
 }
 unsafe impl Send for Screen {}
 unsafe impl Sync for Screen {}
 impl Screen {
-    pub fn new<T: 'static + Shape>(s: T, c: Camera) -> Self {
+    pub fn new(c: Camera, world: Arc<RwLock<World>>) -> Self {
         Screen {
             c,
-            world: World {
-                object: Arc::new(s),
-            },
+            world,
             window: RenderWindow::new(
                 VideoMode::new(500, 500, 32),
                 "title",
@@ -110,37 +108,35 @@ impl Screen {
             let image = Arc::new(RwLock::new(ImageWrapper(image)));
 
             let (bottom_left, top_right) = self.c.get_corners((xs, ys));
-            {
-                let world = Arc::new(self.world.clone());
-                for x in 0..xs {
-                    let thread_counter = thread_counter.clone();
-                    let world = world.clone();
-                    let image = image.clone();
-                    let x_div = x as f64 / xs as f64;
-                    thread_counter.fetch_add(1, Ordering::Relaxed);
+            for x in 0..xs {
+                let world = self.world.clone();
+                let thread_counter = thread_counter.clone();
+                let image = image.clone();
+                let x_div = x as f64 / xs as f64;
+                thread_counter.fetch_add(1, Ordering::Relaxed);
 
-                    thread::spawn(move || {
-                        let mut data = Vec::with_capacity(ys as usize);
-                        let mut r = Ray::new(self.c.origin, Point::ZERO);
-                        for y in 0..ys {
-                            r.direction = lerp_points(
-                                bottom_left,
-                                top_right,
-                                (x_div, y as f64 / ys as f64, x_div).to_point(),
-                            );
-                            data.push(world.as_ref().get_color(r));
-                        }
-                        match image.write() {
-                            Ok(mut i) => unsafe {
-                                for y in 0..ys {
-                                    i.0.set_pixel(x, y, *(data.get_unchecked(y as usize)));
-                                }
-                            },
-                            _ => {}
-                        }
-                        thread_counter.fetch_sub(1, Ordering::Relaxed);
-                    });
-                }
+                thread::spawn(move || {
+                    let mut data = Vec::with_capacity(ys as usize);
+                    let mut r = Ray::new(self.c.origin, Point::ZERO);
+                    let world = world.read().unwrap();
+                    for y in 0..ys {
+                        r.direction = lerp_points(
+                            bottom_left,
+                            top_right,
+                            (x_div, y as f64 / ys as f64, x_div).to_point(),
+                        );
+                        data.push(world.get_color(r));
+                    }
+                    match image.write() {
+                        Ok(mut i) => unsafe {
+                            for y in 0..ys {
+                                i.0.set_pixel(x, y, *(data.get_unchecked(y as usize)));
+                            }
+                        },
+                        _ => {}
+                    }
+                    thread_counter.fetch_sub(1, Ordering::Relaxed);
+                });
             }
             while thread_counter.load(Ordering::Relaxed) > 0 {}
             let image = &image.try_read().unwrap().0;
@@ -167,9 +163,6 @@ impl Screen {
                         break 'main;
                     }
 
-
-
-                
                     Event::KeyPressed { code, .. } => match code {
                         Key::D => {
                             self.c.rot_x += 0.1;

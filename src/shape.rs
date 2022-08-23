@@ -4,7 +4,7 @@ use crate::{point::Point, ray::Ray};
 #[derive(Debug, Clone, Copy)]
 pub enum CollisionResult {
     None,
-    PointCollision(Point, Color),
+    PointCollision(Point,f64, Color),
 }
 pub trait Shape: 'static + Send + Sync {
     fn ray_cast(&self, r: Ray) -> CollisionResult;
@@ -15,11 +15,12 @@ pub trait Shape: 'static + Send + Sync {
 
 pub struct Sphere {
     origin: Point,
+    color:Color,
     r: f64,
 }
 impl Sphere {
-    pub fn new(o: Point, r: f64) -> Self {
-        Self { origin: o, r }
+    pub fn new(o: Point, r: f64,color:Color) -> Self {
+        Self { origin: o, r,color }
     }
 }
 impl Shape for Sphere {
@@ -41,17 +42,16 @@ impl Shape for Sphere {
 
         if t1 > 0.0 && (t2 > t1 || t2 < 0.0) {
             p = r.get_point_with_coefficient(t1);
-            CollisionResult::PointCollision(p, self.get_color())
+            CollisionResult::PointCollision(p,t1, self.get_color())
         } else if t2 > 0.0{
             let p = r.get_point_with_coefficient(t2);
-            CollisionResult::PointCollision(p, self.get_color())
+            CollisionResult::PointCollision(p,t2, self.get_color())
         } else {
             CollisionResult::None
         }
     }
 
     fn get_color(&self) -> sfml::graphics::Color {
-        // Color::rgb(random(),random(),random())
-        Color::RED
+        self.color
     }
 }
