@@ -18,6 +18,7 @@ use shape::Sphere;
 use world::World;
 
 fn main() {
+    
     let spehere = Sphere::new((0, 0, 0).to_point(), 3.0, Color::rgb(0, 0, 100));
     let spehere1 = Sphere::new((10, 0, 0).to_point(), 3.0, Color::rgb(100, 0, 0));
     let s = Screen::new(

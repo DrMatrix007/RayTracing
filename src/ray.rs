@@ -13,6 +13,8 @@ impl Ray {
             direction: d,
         }
     }
+
+    // add the origin and the direction times the coefficient
     pub fn get_point_with_coefficient(&self, a: f64) -> Point {
         self.origin + self.direction * a
     }
