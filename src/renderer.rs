@@ -93,10 +93,6 @@ impl Screen {
 
         'main: loop {
             let start = Instant::now();
-            // let mut pool = Vec::<JoinHandle<()>>::new();
-            // if target.size() != self.window.size() {
-            // target = RenderTexture::new(self.window.size().x,self.window.size().y).unwrap();
-            // }            let a = self.window.default_view().to_owned();
             self.window.set_view(&View::new(
                 Vector2f::new(xs as f32 / 2.0, ys as f32 / 2.0),
                 Vector2f::new(xs as f32, ys as f32),
@@ -127,13 +123,12 @@ impl Screen {
                         );
                         data.push(world.get_color(r));
                     }
-                    match image.write() {
-                        Ok(mut i) => unsafe {
+                    if let Ok(mut i) = image.write() {
+                        unsafe {
                             for y in 0..ys {
                                 i.0.set_pixel(x, y, *(data.get_unchecked(y as usize)));
                             }
-                        },
-                        _ => {}
+                        }
                     }
                     thread_counter.fetch_sub(1, Ordering::Relaxed);
                 });
@@ -197,8 +192,7 @@ impl Screen {
             }
 
             self.window.display();
-            // break;
-            println!("fps: {}", 1.0 / (Instant::now() - start).as_secs_f64());
+            // println!("fps: {}", 1.0 / (Instant::now() - start).as_secs_f64());
         }
     }
 }

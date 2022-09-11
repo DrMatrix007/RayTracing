@@ -2,6 +2,8 @@ use std::ops::*;
 
 use sfml::graphics::Color;
 
+
+// a linear interpolation function
 pub fn lerp(a: f64, b: f64, t: f64) -> f64 {
     a * (1.0 - t) + t * b
 }
@@ -22,15 +24,17 @@ impl Point {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
-
+    // the distance of 2 points
     pub fn distance(&self, other: Self) -> f64 {
         ((self.x - other.x).powi(2) + (self.y - other.y).powi(2) + (self.z - other.z).powi(2))
             .sqrt()
     }
+    // the distance to the origin
     pub fn distance_to_origin(&self) -> f64 {
         self.distance(Point::ZERO)
     }
 
+    // convert the point to a 3d vector for the sfml library as 8bit for each color
     pub fn to_color_u8(self) -> Color {
         // self = self * 255.0;
         Color::rgb(
@@ -39,6 +43,7 @@ impl Point {
             (self.z % 255.0) as u8,
         )
     }
+    // convert the point to a 3d vector for the sfml library as floats
     pub fn to_color_f64(mut self) -> Color {
         self = self * 255.0;
         Color::rgb(
@@ -47,9 +52,13 @@ impl Point {
             (self.z % 255.0) as u8,
         )
     }
+
+    // the dor product of 2 points
     pub fn dot(self, other: Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
+
+    // the cross product of 2 points
     pub fn cross(&self, other: &Self) -> Self {
         (
             self.y * other.z - self.z * other.y,
@@ -58,11 +67,15 @@ impl Point {
         )
             .to_point()
     }
+    
+
+    // returns the same vector but with length 1
     pub fn normalized(self) -> Self {
         self / (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)) as f64
     }
 }
 
+// lerp 2 points base on t
 pub fn lerp_points(a: Point, b: Point, t: Point) -> Point {
     (
         lerp(a.x, b.x, t.x),
@@ -71,6 +84,8 @@ pub fn lerp_points(a: Point, b: Point, t: Point) -> Point {
     )
         .to_point()
 }
+
+// operations for point
 
 impl Neg for Point {
     type Output = Point;
